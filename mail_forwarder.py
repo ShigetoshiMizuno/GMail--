@@ -676,7 +676,7 @@ class MailForwarder:
                 # メール解析
                 msg = message_from_bytes(mail_data)
                 from_addr = parseaddr(msg.get('From', ''))[1]
-                subject = msg.get('Subject', '(件名なし)')
+                subject = str(msg.get('Subject', '(件名なし)'))
                 
                 # メールの日付を取得
                 mail_date = None
@@ -684,54 +684,38 @@ class MailForwarder:
                     mail_date_str = msg.get('Date')
                     if mail_date_str:
                         mail_date = parsedate_to_datetime(mail_date_str)
+                        # タイムゾーンなしの場合はJSTと仮定
+                        if mail_date.tzinfo is None:
+                            mail_date = mail_date.replace(tzinfo=timezone(timedelta(hours=9)))
                 except Exception:
                     pass
                 
                 # 転送開始日時でフィルタ
                 should_forward = True
                 if self.start_date and mail_date:
-                            
-                            # 開始日時より前のメールはスキップ
-                            if mail_date < self.start_date:
-                                should_forward = False
-                                skipped_count += 1
-                                # DEBUGレベルで詳細を記録（ノイズ防止）
-                                self.logger.debug(
-                                    f"スキップ: {mail_date.strftime('%Y-%m-%d %H:%M:%S')} のメール "
-                                    f"From={from_addr} Subject={subject} （開始日時より前）"
-                                )
-                                # スキップしたメールもUIDLに記録（forward_success=False）
-                                self._save_retrieved_mail(uidl, from_addr, subject, False)
-                        else:
-                            # Dateヘッダーがない場合は警告して転送する
-                            self.logger.warning(
-                                f"Dateヘッダーがありません。転送します: From={from_addr} Subject={subject}"
-                            )
-                    except Exception as e:
-                        # 日付解析エラーの場合は警告して転送する
-                        self.logger.warning(
-                            f"日付解析エラー。転送します: From={from_addr} Subject={subject} エラー: {e}"
+                    # 開始日時より前のメールはスキップ
+                    if mail_date < self.start_date:
+                        should_forward = False
+                        skipped_count += 1
+                        # DEBUGレベルで詳細を記録（ノイズ防止）
+                        self.logger.debug(
+                            f"スキップ: {mail_date.strftime('%Y-%m-%d %H:%M:%S')} のメール "
+                            f"From={from_addr} Subject={subject} （開始日時より前）"
                         )
+                        # スキップしたメールもUIDLに記録（forward_success=False）
+                        self._save_retrieved_mail(uidl, from_addr, subject, False)
+                elif self.start_date and not mail_date:
+                    # Dateヘッダーがない場合は警告して転送する
+                    self.logger.warning(
+                        f"Dateヘッダーがありません。転送します: From={from_addr} Subject={subject}"
+                    )
                 
                 if should_forward:
-                    new_mails.append((uidl, mail_data, from_addr, subject))
+                    new_mails.append((uidl, mail_data, from_addr, subject, mail_date))
                     # DEBUGレベルで詳細を記録
                     self.logger.debug(
                         f"新規メール取得: From={from_addr} Subject={subject}"
                     )
-            
-            # サマリーログ
-            self.logger.info(
-                f"サーバー上のメール: {len(server_uidls)}通, "
-                f"新規メール: {len(new_uidls)}通"
-            )
-            if self.start_date and skipped_count > 0:
-                self.logger.info(
-                    f"  - スキップ: {skipped_count}件（開始日時より前）"
-                )
-                self.logger.info(
-                    f"  - 転送対象: {len(new_mails)}件"
-                )
             
             pop_conn.quit()
             
