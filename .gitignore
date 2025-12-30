@@ -1,0 +1,140 @@
+# ========================================
+# 🔒 個人情報・機密情報（絶対にコミットしない！）
+# ========================================
+
+# 設定ファイル（個人のID/パスワードが含まれる）
+config.yaml
+*.secret
+*.credentials
+
+# データベース（取得済みメールのUIDL情報）
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# ログファイル（個人のメール情報が含まれる可能性）
+logs/
+*.log
+
+# ========================================
+# Python関連
+# ========================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ========================================
+# IDE / エディタ設定
+# ========================================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ========================================
+# OS固有ファイル
+# ========================================
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+.directory
+.Trash-*
+
+# ========================================
+# その他
+# ========================================
+
+# 一時ファイル
+*.tmp
+*.bak
+*.backup
+*.old
+
+# アーカイブファイル（配布用は除く）
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z

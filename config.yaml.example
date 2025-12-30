@@ -1,0 +1,42 @@
+# POP3メール転送 設定ファイル
+
+# POP3サーバー設定（メール取得元プロバイダ）
+pop3:
+  host: "pop.example.ne.jp"          # POP3サーバーのホスト名
+  port: 995                          # POP3 over SSL/TLSのポート
+  use_ssl: true                      # SSL/TLS使用
+  username: "your_account@example.ne.jp"  # POP3ユーザー名
+  password: "your_pop3_password"     # POP3パスワード
+
+# SMTPサーバー設定（送信用プロバイダSMTP）
+smtp:
+  host: "smtp.example.ne.jp"         # SMTPサーバーのホスト名
+  port: 587                          # 推奨: サブミッションポート（OP25B対策）
+  use_tls: true                      # TLS使用（STARTTLSを使用する場合true）
+  username: "your_account@example.ne.jp"  # SMTP認証ユーザー名
+  password: "your_smtp_password"     # SMTP認証パスワード
+  pop_before_smtp: false             # POP before SMTP（古いプロバイダ用）: true=有効, false=無効
+
+# 転送設定
+forward:
+  to_address: "destination@example.com" # 転送先（Gmail、Outlook、iCloud等、任意のアドレス）
+
+# メール保持期間設定（日数）
+# 0: 削除しない（無期限保持）
+# 1-365: 指定日数経過後に自動削除（転送成功済みメールのみ）
+# デフォルト: 30日
+mail_retention_days: 30
+
+# デーモンモード設定
+daemon:
+  interval: 300                      # デフォルトチェック間隔（秒）
+
+# データベース設定
+database:
+  path: "data/mail_uidl.db"          # SQLiteデータベースファイルパス
+
+# ログ設定
+logging:
+  level: "INFO"                      # ログレベル: DEBUG, INFO, WARNING, ERROR
+  file: "logs/mail_forwarder.log"    # ログファイルパス
+  max_days: 30                       # ログ保持日数
