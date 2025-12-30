@@ -353,7 +353,7 @@ TimeoutError: Connection timed out
 
 ## ライセンス
 
-このソフトウェアはプロジェクト内部使用を目的としています。
+このプロジェクトは MIT License の下でライセンスされています。詳細は [LICENSE](LICENSE) ファイルを参照してください。
 
 ## 作成日
 
