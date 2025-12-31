@@ -139,3 +139,6 @@ $RECYCLE.BIN/
 *.rar
 *.7z
 *.mdpf
+
+# ドキュメント生成ファイル
+.mdpf
