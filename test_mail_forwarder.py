@@ -21,7 +21,7 @@ from email.utils import parseaddr
 from mail_forwarder import (
     input_with_default,
     setup_wizard,
-    test_config,
+    test_config as verify_config,  # pytestとの衝突を回避
     MailForwarder,
     parse_start_date
 )
@@ -208,7 +208,7 @@ class TestTestConfig:
     @patch('builtins.print')
     def test_config_file_not_found(self, mock_print):
         """設定ファイルが見つからない場合"""
-        result = test_config('nonexistent.yaml')
+        result = verify_config('nonexistent.yaml')
         assert result is False
         # エラーメッセージが出力されることを確認
         assert any('エラー' in str(call) for call in mock_print.call_args_list)
@@ -217,7 +217,7 @@ class TestTestConfig:
     @patch('builtins.open', mock_open(read_data='invalid: yaml: content: ['))
     def test_invalid_yaml(self, mock_print):
         """不正なYAMLファイルの場合"""
-        result = test_config('config.yaml')
+        result = verify_config('config.yaml')
         assert result is False
     
     @patch('smtplib.SMTP')
@@ -247,7 +247,7 @@ smtp:
         smtp_instance = MagicMock()
         mock_smtp.return_value = smtp_instance
         
-        result = test_config('config.yaml')
+        result = verify_config('config.yaml')
         
         assert result is True
         # 成功メッセージが出力されることを確認
@@ -271,7 +271,7 @@ smtp:
         """POP3認証に失敗する場合"""
         mock_pop3.side_effect = poplib.error_proto('Authentication failed')
         
-        result = test_config('config.yaml')
+        result = verify_config('config.yaml')
         
         assert result is False
     
@@ -292,7 +292,7 @@ smtp:
         """POP3認証失敗時に日本語エラーメッセージが表示される"""
         mock_pop3.side_effect = poplib.error_proto('Authentication failed')
         
-        result = test_config('config.yaml')
+        result = verify_config('config.yaml')
         
         assert result is False
         # 日本語のエラーメッセージが出力されることを確認
@@ -325,7 +325,7 @@ smtp:
         # SMTPは認証失敗
         mock_smtp.side_effect = smtplib.SMTPAuthenticationError(535, 'Authentication failed')
         
-        result = test_config('config.yaml')
+        result = verify_config('config.yaml')
         
         assert result is False
         # 日本語のエラーメッセージが出力されることを確認
@@ -528,7 +528,7 @@ class TestMailForwarder:
         cursor.execute('''
             INSERT INTO retrieved_mails (uidl, forwarded_at, from_addr, subject, forward_success)
             VALUES (?, ?, ?, ?, ?)
-        ''', ('old_uidl', old_date, 'test@test.jp', 'Old Mail', True))
+        ''', ('old_uidl', old_date.isoformat(), 'test@test.jp', 'Old Mail', True))
         conn.commit()
         conn.close()
         
@@ -554,14 +554,14 @@ class TestMailForwarder:
         cursor.execute('''
             INSERT INTO retrieved_mails (uidl, forwarded_at, from_addr, subject, forward_success)
             VALUES (?, ?, ?, ?, ?)
-        ''', ('old_uidl', old_date, 'test@test.jp', 'Old Mail', True))
+        ''', ('old_uidl', old_date.isoformat(), 'test@test.jp', 'Old Mail', True))
         
         # 新しいメールも登録
         new_date = datetime.now()
         cursor.execute('''
             INSERT INTO retrieved_mails (uidl, forwarded_at, from_addr, subject, forward_success)
             VALUES (?, ?, ?, ?, ?)
-        ''', ('new_uidl', new_date, 'test@test.jp', 'New Mail', True))
+        ''', ('new_uidl', new_date.isoformat(), 'test@test.jp', 'New Mail', True))
         
         conn.commit()
         conn.close()
@@ -601,7 +601,7 @@ class TestMailForwarder:
         cursor.execute('''
             INSERT INTO retrieved_mails (uidl, forwarded_at, from_addr, subject, forward_success)
             VALUES (?, ?, ?, ?, ?)
-        ''', ('failed_uidl', old_date, 'test@test.jp', 'Failed Mail', False))
+        ''', ('failed_uidl', old_date.isoformat(), 'test@test.jp', 'Failed Mail', False))
         conn.commit()
         conn.close()
         

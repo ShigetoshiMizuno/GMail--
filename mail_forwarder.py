@@ -612,7 +612,7 @@ class MailForwarder:
             INSERT OR REPLACE INTO retrieved_mails 
             (uidl, forwarded_at, from_addr, subject, forward_success)
             VALUES (?, ?, ?, ?, ?)
-        ''', (uidl, datetime.now(), from_addr, subject, success))
+        ''', (uidl, datetime.now().isoformat(), from_addr, subject, success))
         conn.commit()
         conn.close()
     
@@ -635,7 +635,7 @@ class MailForwarder:
             SELECT uidl, from_addr, subject FROM retrieved_mails
             WHERE forward_success = 1
             AND forwarded_at < ?
-        ''', (cutoff_date,))
+        ''', (cutoff_date.isoformat(),))
         
         mails_to_delete = cursor.fetchall()
         
