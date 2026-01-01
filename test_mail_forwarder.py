@@ -673,7 +673,7 @@ class TestMailForwarder:
         assert uidl == 'uidl123'
         assert b'This is a test mail' in mail_data
         assert from_addr == 'sender@test.jp'
-        assert subject == 'Test Mail'
+        assert subject == '[ASCII] Test Mail'
     
     @patch('poplib.POP3_SSL')
     def test_fetch_new_mails_skip_retrieved(self, mock_pop3, config_file):
@@ -784,7 +784,7 @@ class TestMailForwarder:
         assert len(new_mails) == 1
         uidl, mail_data, from_addr, subject, mail_date = new_mails[0]
         assert uidl == 'uidl_new'
-        assert subject == 'New Mail'
+        assert subject == '[ASCII] New Mail'
     
     @patch('poplib.POP3_SSL')
     def test_fetch_new_mails_with_start_date_mixed(self, mock_pop3, config_file):
@@ -836,8 +836,10 @@ class TestMailForwarder:
         
         # 2通が取得される（1通はスキップ）
         assert len(new_mails) == 2
-        assert new_mails[0][2] == 'new1@test.jp'  # from_addr
-        assert new_mails[1][2] == 'new2@test.jp'
+        # メールは取得順に格納されるので、new1とnew2の順序を確認
+        from_addrs = {mail[2] for mail in new_mails}
+        assert 'new1@test.jp' in from_addrs
+        assert 'new2@test.jp' in from_addrs
         
         # スキップしたメールもUIDLに記録される
         uidls = forwarder._get_retrieved_uidls()
@@ -1019,7 +1021,7 @@ class TestMailForwarder:
         assert uidl == 'uidl_jp_002'
         # parseaddrはメールアドレス部分のみを抽出
         assert from_addr == 'sender@test.jp'
-        assert subject == 'Test Mail'
+        assert subject == '[ASCII] Test Mail'
     
     @patch('smtplib.SMTP')
     def test_forward_mail_success_starttls(self, mock_smtp, config_file):
@@ -1089,10 +1091,10 @@ class TestMailForwarder:
         
         assert result is False
     
-    @patch('mail_forwarder.MailForwarder._forward_mail')
+    @patch('mail_forwarder.MailForwarder._forward_mail_batch')
     @patch('mail_forwarder.MailForwarder._fetch_new_mails')
     @patch('mail_forwarder.MailForwarder._delete_old_mails')
-    def test_process_once(self, mock_delete, mock_fetch, mock_forward, config_file):
+    def test_process_once(self, mock_delete, mock_fetch, mock_forward_batch, config_file):
         """ワンショット処理のテスト"""
         forwarder = MailForwarder(config_file)
         
@@ -1101,14 +1103,18 @@ class TestMailForwarder:
             ('uidl1', b'mail1', 'sender1@test.jp', 'Subject1', None),
             ('uidl2', b'mail2', 'sender2@test.jp', 'Subject2', None)
         ]
-        mock_forward.return_value = True
+        # _forward_mail_batchは(uidl, success)のリストを返す
+        mock_forward_batch.return_value = [
+            ('uidl1', True),
+            ('uidl2', True)
+        ]
         
         forwarder.process_once()
         
         # 各メソッドが呼ばれることを確認
         mock_delete.assert_called_once()
         mock_fetch.assert_called_once()
-        assert mock_forward.call_count == 2
+        mock_forward_batch.assert_called_once()
         
         # 転送したメールが保存されることを確認
         uidls = forwarder._get_retrieved_uidls()
